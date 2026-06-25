@@ -9288,9 +9288,9 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin):
         # Add funds first, then settings, then the scopeless browser handoff.
         # No "Enable terminal billing" item — that's discovered at pay time.
         # "Add funds" charges in-terminal against the org's portal-saved card
-        # (server-held via POST /charge — no card ref leaves the client). The
-        # no-card case is already handled above (the overview routes to the portal
-        # before this menu shows), so reaching "Add funds" implies a card on file.
+        # (server-held via POST /charge — no card ref leaves the client). A
+        # missing card is NOT gated here: the buy flow reacts to the server's
+        # no_payment_method 403 and hands off to the portal at charge time.
         choices = [
             ("buy", "Add funds", "add money to your balance"),
             ("auto", "Auto-reload", "configure automatic top-ups"),
