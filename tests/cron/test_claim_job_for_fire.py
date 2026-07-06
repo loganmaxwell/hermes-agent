@@ -12,9 +12,19 @@ import pytest
 
 @pytest.fixture
 def temp_home(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME so jobs.json doesn't touch the real store."""
+    """Isolated cron store so jobs.json doesn't touch the real store.
+
+    cron.jobs resolves CRON_DIR/JOBS_FILE/OUTPUT_DIR once at import time,
+    so setting HERMES_HOME alone is NOT enough when the module was already
+    imported by an earlier test -- the module attributes must be patched
+    too (same idiom as ``tmp_cron_dir`` in test_jobs.py). An env-only
+    version of this fixture leaked its every-5m fixture jobs into a real
+    ~/.hermes/cron/jobs.json, where they fired real agent runs.
+    """
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    # cron.jobs caches no home at import; get_hermes_home() reads the env live.
+    monkeypatch.setattr("cron.jobs.CRON_DIR", tmp_path / "cron")
+    monkeypatch.setattr("cron.jobs.JOBS_FILE", tmp_path / "cron" / "jobs.json")
+    monkeypatch.setattr("cron.jobs.OUTPUT_DIR", tmp_path / "cron" / "output")
     yield tmp_path
 
 
